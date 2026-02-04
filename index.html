@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2026 北海道之旅 (最終版) | Hokkaido Trip</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'snow-blue': '#E0F2F1',
+                        'ice-blue': '#B2EBF2',
+                        'deep-blue': '#006064',
+                        'accent-gold': '#FBC02D'
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans TC', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            font-family: 'Noto Sans TC', sans-serif; 
+            background-color: #f5fafd; 
+            color: #374151; 
+            background-image: 
+                radial-gradient(#dbeafe 1px, transparent 1px),
+                radial-gradient(#dbeafe 1px, transparent 1px);
+            background-position: 0 0, 25px 25px;
+            background-size: 50px 50px;
+            padding-bottom: 90px; /* Space for bottom nav */
+            -webkit-tap-highlight-color: transparent;
+        }
+        .hero-bg {
+            background: linear-gradient(rgba(0, 50, 80, 0.3), rgba(0, 50, 80, 0.2)), url('https://images.unsplash.com/photo-1548574505-5e239809ee19?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .timeline-line {
+            position: absolute;
+            left: 16px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #cbd5e1;
+            z-index: 0;
+        }
+        @media (min-width: 768px) { .timeline-line { left: 24px; } }
+
+        /* Nav Styles */
+        .nav-active-mobile { color: #0ea5e9; font-weight: 700; }
+        .nav-active-mobile i { transform: scale(1.1); }
+
+        .checkbox-wrapper input:checked + div {
+            background-color: #f0f9ff;
+            text-decoration: line-through;
+            color: #94a3b8;
+            border-color: #bae6fd;
+        }
+
+        /* Map & Edit Buttons */
+        .map-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: #0284c7;
+            background-color: #e0f2fe;
+            padding: 6px 12px;
+            border-radius: 9999px;
+            transition: all 0.2s;
+            text-decoration: none;
+            border: 1px solid transparent;
+            margin-top: 4px;
+            white-space: nowrap;
+        }
+        .edit-link-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #f1f5f9;
+            color: #64748b;
+            font-size: 0.75rem;
+            margin-left: 4px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .edit-link-btn:hover { background-color: #e2e8f0; color: #334155; }
+
+        /* Editable Text Style */
+        [contenteditable="true"] {
+            border-bottom: 1px dashed #cbd5e1;
+            transition: border-color 0.2s;
+        }
+        [contenteditable="true"]:focus {
+            outline: none;
+            border-bottom: 2px solid #0ea5e9;
+            background-color: #f0f9ff;
+        }
+
+        /* Hotel Image - Larger */
+        .hotel-img {
+            width: 100%;
+            height: 280px; /* Increased height */
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Mobile Top Bar -->
+    <div class="fixed top-0 w-full bg-white/95 backdrop-blur shadow-sm z-50 h-14 flex items-center justify-between px-4">
+        <span class="text-lg font-bold tracking-wider text-slate-800 flex items-center">
+            <i class="fas fa-snowflake text-sky-400 mr-2"></i>HOKKAIDO 2026
+        </span>
+        <span class="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">可編輯模式</span>
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 z-50 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <div class="grid grid-cols-5 h-16">
+            <button onclick="switchTab('itinerary')" id="mob-btn-itinerary" class="flex flex-col items-center justify-center text-sky-600 nav-active-mobile">
+                <i class="fas fa-map-marked-alt text-xl mb-1"></i><span class="text-[10px]">行程</span>
+            </button>
+            <button onclick="switchTab('hotels')" id="mob-btn-hotels" class="flex flex-col items-center justify-center text-slate-400">
+                <i class="fas fa-bed text-xl mb-1"></i><span class="text-[10px]">住宿</span>
+            </button>
+            <button onclick="switchTab('prep')" id="mob-btn-prep" class="flex flex-col items-center justify-center text-slate-400">
+                <i class="fas fa-clipboard-check text-xl mb-1"></i><span class="text-[10px]">清單</span>
+            </button>
+            <button onclick="switchTab('coupons')" id="mob-btn-coupons" class="flex flex-col items-center justify-center text-slate-400">
+                <i class="fas fa-ticket-alt text-xl mb-1"></i><span class="text-[10px]">優惠</span>
+            </button>
+            <button onclick="switchTab('flights')" id="mob-btn-flights" class="flex flex-col items-center justify-center text-slate-400">
+                <i class="fas fa-plane text-xl mb-1"></i><span class="text-[10px]">航班</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero-bg h-[40vh] flex items-center justify-center text-white text-center px-4 mt-14 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent"></div>
+        <div class="relative z-10 animate-fade-in-up w-full">
+            <h1 class="text-4xl font-bold mb-4 drop-shadow-2xl">北海道</h1>
+            <div class="inline-block glass-card text-slate-800 px-4 py-2 rounded-full shadow-2xl">
+                <span class="font-mono font-bold text-xl text-sky-700" id="countdown">計算中...</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 py-8 min-h-screen">
+
+        <!-- SECTION: ITINERARY -->
+        <section id="itinerary" class="tab-content block">
+            <div class="mb-6 flex justify-between items-end">
+                <h2 class="text-2xl font-bold text-slate-800">每日行程</h2>
+                <span class="text-xs text-slate-400"><i class="fas fa-pen mr-1"></i>點擊文字編輯</span>
+            </div>
+
+            <div class="relative pl-2">
+                <div class="timeline-line"></div>
+
+                <!-- Day 1 -->
+                <div class="relative pl-8 pb-10 group">
+                    <div class="absolute left-0 top-1 w-9 h-9 bg-sky-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg z-10 border-2 border-white">1</div>
+                    <div class="glass-card bg-white rounded-xl p-5">
+                        <div class="flex flex-col mb-4">
+                            <h3 class="text-lg font-bold text-slate-800" contenteditable="true">3/15 (日) 抵達札幌 & 市區巡禮</h3>
+                            <span class="text-sky-600 text-sm font-bold bg-sky-50 px-3 py-1 rounded-full mt-2 self-start"><i class="fas fa-bed mr-2"></i>宿: <span contenteditable="true">札幌京王普雷利亞</span></span>
+                        </div>
+                        <ul class="space-y-6">
+                            <li class="flex flex-col gap-2">
+                                <span class="bg-sky-100 text-sky-800 text-xs font-bold px-2 py-1 rounded self-start">下午</span>
+                                <div class="flex-1">
+                                    <strong class="text-lg text-slate-800 block mb-2" contenteditable="true">札幌市區觀光</strong>
+                                    <div class="space-y-3">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <span class="text-slate-700" contenteditable="true">北海道廳舊本廳舍</span>
+                                            <div class="flex items-center">
+                                                <a href="https://www.google.com/maps/search/?api=1&query=北海道廳舊本廳舍" target="_blank" class="map-btn" id="btn-1"><i class="fas fa-location-arrow mr-1"></i>導航</a>
+                                                <button class="edit-link-btn" onclick="editLink('btn-1')"><i class="fas fa-pencil-alt"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 p-3 bg-amber-50 rounded-lg border border-amber-100 text-sm">
+                                        <p class="text-amber-800 font-medium"><i class="fas fa-shopping-bag mr-1"></i>購物:</p>
+                                        <p class="text-slate-600" contenteditable="true">Tempur-Pedic, Uniqlo, 狸小路 (藥妝/雪靴)</p>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="flex flex-col gap-2">
+                                <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2 py-1 rounded self-start">晚餐</span>
+                                <div class="flex-1">
+                                    <strong class="text-lg text-slate-800 block mb-2" contenteditable="true">狸小路湯咖哩</strong>
+                                    <div class="flex flex-wrap gap-2 mb-2">
+                                        <div class="flex items-center">
+                                            <a href="https://www.google.com/maps/search/?api=1&query=Soup+Curry+GARAKU" target="_blank" class="map-btn" id="btn-garaku">GARAKU</a>
+                                            <button class="edit-link-btn" onclick="editLink('btn-garaku')"><i class="fas fa-pencil-alt"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 text-sm">
+                                        <span class="text-slate-600 font-medium">宵夜:</span> <span contenteditable="true">串鳥 (Kushidori)</span>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Day 2 -->
+                <div class="relative pl-8 pb-10 group">
+                    <div class="absolute left-0 top-1 w-9 h-9 bg-sky-400 rounded-full flex items-center justify-center text-white font-bold shadow-lg z-10 border-2 border-white">2</div>
+                    <div class="glass-card bg-white rounded-xl p-5">
+                        <div class="flex flex-col mb-4">
+                            <h3 class="text-lg font-bold text-slate-800" contenteditable="true">3/16 (一) 旭川動物園</h3>
+                            <span class="text-sky-600 text-sm font-bold bg-sky-50 px-3 py-1 rounded-full mt-2 self-start">KLOOK 一日遊</span>
+                        </div>
+                        <ul class="space-y-6">
+                            <li class="flex flex-col gap-2">
+                                <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-1 rounded self-start">全日</span>
+                                <div class="flex-1 space-y-3">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <strong class="text-slate-800" contenteditable="true">旭山動物園</strong>
+                                        <div class="flex items-center">
+                                            <a href="https://www.google.com/maps/search/?api=1&query=旭山動物園" target="_blank" class="map-btn" id="btn-zoo"><i class="fas fa-location-arrow mr-1"></i>導航</a>
+                                            <button class="edit-link-btn" onclick="editLink('btn-zoo')"><i class="fas fa-pencil-alt"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <strong class="text-slate-800" contenteditable="true">美瑛青池 & 富良野</strong>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="flex flex-col gap-2">
+                                <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2 py-1 rounded self-start">晚餐</span>
+                                <div class="flex-1">
+                                    <strong class="text-lg text-slate-800 block mb-2" contenteditable="true">成吉思汗烤肉 (羊肉)</strong>
+                                    <div class="flex flex-wrap gap-2">
+                                        <div class="flex items-center">
+                                            <a href="https://www.google.com/maps/search/?api=1&query=成吉思汗大黑屋+札幌" target="_blank" class="map-btn" id="btn-bbq">大黑屋/Yuuhi</a>
+                                            <button class="edit-link-btn" onclick="editLink('btn-bbq')"><i class="fas fa-pencil-alt"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Day 3 -->
+                <div class="relative pl-8 pb-10 group">
+                    <div class="absolute left-0 top-1 w-9 h-9 bg-sky-400 rounded-full flex items-center justify-center text-white font-bold shadow-lg z-10 border-2 border-white">3</div>
+                    <div class="glass-card bg-white rounded-xl p-5">
+                        <div class="flex flex-col mb-4">
+                            <h3 class="text-lg font-bold text-slate-800" contenteditable="true">3/17 (二) 小樽運河自駕</h3>
+                            <span class="text-purple-600 text-sm font-bold bg-purple-50 px-3 py-1 rounded-full mt-2 self-start"><i class="fas fa-car mr-2"></i>自駕開始</span>
+                        </div>
+                        <ul class="space-y-6">
+                            <li class="flex flex-col gap-2">
+                                <div>
+                                    <strong class="text-lg text-slate-800" contenteditable="true">前往小樽</strong>
+                                    <div class="mt-1 flex flex-wrap items-center gap-2">
+                                        <span class="text-sm text-slate-600">停: 小樽市觀光停車場</span>
+                                        <div class="flex items-center">
+                                            <a href="https://www.google.com/maps/search/?api=1&query=小樽市觀光停車場" target="_blank" class="map-btn" id="btn-parking-otaru"><i class="fas fa-location-arrow mr-1"></i>導航</a>
+                                            <button class="edit-link-btn" onclick="editLink('btn-parking-otaru')"><i class="fas fa-pencil-alt"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="flex flex-col gap-2">
+                                <div>
+                                    <strong class="text-lg text-slate-800 block mb-2" contenteditable="true">小樽漫遊 (午餐自理)</strong>
+                                    <div class="text-sm text-slate-500 mt-1" contenteditable="true">
+                                        運河、北一硝子館、LeTAO、三角市場
+                                    </div>
+                                </div>
+                            </li>
+                            
+                            <!-- 3/17 DINNER UPDATE -->
+                            <li class="flex flex-col gap-2">
+                                <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2 py-1 rounded self-start">晚餐 (開車前往)</span>
+                                <div class="flex-1">
+                                    <p class="text-xs text-red-500 mb-2 font-bold"><i class="fas fa-car mr-1"></i>需開車前往以下餐廳</p>
+                                    
+                                    <div class="mb-3 border-l-2 border-slate-200 pl-3">
+                                        <strong class="text-slate-800 block mb-1">選項 A: 迴轉壽司</strong>
+                                        <span class="text-slate-600 text-sm block mb-1" contenteditable="true">長也家 (Nagoyakatei) 白石本通店</span>
+                                        <div class="flex items-center">
+                                            <a href="https://www.google.com/maps/search/?api=1&query=Nagoyakatei+Shiroishi-hondōri+Shop" target="_blank" class="map-btn" id="btn-nagoya"><i class="fas fa-location-arrow mr-1"></i>導航</a>
+                                            <button class="edit-link-btn" onclick="editLink('btn-nagoya')"><i class="fas fa-pencil-alt"></i></button>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3 border-l-2 border-slate-200 pl-3">
+                                        <strong class="text-slate-800 block mb-1">選項 B: 湯咖哩</strong>
+                                        <span class="text-slate-600 text-sm block mb-1" contenteditable="true">Soup Curry Treasure</span>
+                                        <div class="flex items-center">
+                                            <a href="https://www.google.com/maps/search/?api=1&query=Soup+Curry+Treasure" target="_blank" class="map-btn" id="btn-treasure"><i class="fas fa-location-arrow mr-1"></i>導航</a>
+                                            <button class="edit-link-btn" onclick="editLink('btn-treasure')"><i class="fas fa-pencil-alt"></i></button>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-slate-100 p-3 rounded-lg text-sm">
+                                        <strong class="text-slate-700 block mb-1"><i class="fas fa-parking mr-1"></i>回飯店停車場</strong>
+                                        <span class="text-slate-500 block mb-1">Nihonseimeisapporokitaguchi Bldg. Parking</span>
+                                        <div class="flex items-center">
+                                            <a href="https://www.google.com/maps/search/?api=1&query=Nihonseimeisapporokitaguchi+Bldg.+Parking+Lot" target="_blank" class="map-btn" id="btn-parking-sapporo"><i class="fas fa-location-arrow mr-1"></i>導航</a>
+                                            <button class="edit-link-btn" onclick="editLink('btn-parking-sapporo')"><i class="fas fa-pencil-alt"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Day 4 -->
+                <div class="relative pl-8 pb-10 group">
+                    <div class="absolute left-0 top-1 w-9 h-9 bg-sky-400 rounded-full flex items-center justify-center text-white font-bold shadow-lg z-10 border-2 border-white">4</div>
+                    <div class="glass-card bg-white rounded-xl p-5">
+                        <div class="flex flex-col mb-4">
+                            <h3 class="text-lg font-bold text-slate-800" contenteditable="true">3/18 (三) 定山溪 & 洞爺湖</h3>
+                            <span class="text-sky-600 text-sm font-bold bg-sky-50 px-3 py-1 rounded-full mt-2 self-start">宿: TOYA 乃之風</span>
+                        </div>
+                         <ul class="space-y-6">
+                            <li class="flex flex-col gap-2">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <strong class="text-slate-800" contenteditable="true">早餐: 二條市場 大磯</strong>
+                                    <div class="flex items-center">
+                                        <a href="https://www.google.com/maps/search/?api=1&query=二條市場+大磯" target="_blank" class="map-btn" id="btn-oiso"><i class="fas fa-location-arrow mr-1"></i>導航</a>
+                                        <button class="edit-link-btn" onclick="editLink('btn-oiso')"><i class="fas fa-pencil-alt"></i></button>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="flex flex-col gap-2">
+                                <div>
+                                    <strong class="text-lg text-slate-800 block mb-2" contenteditable="true">觀光行程</strong>
+                                    <div class="space-y-3">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <span class="text-slate-700" contenteditable="true">定山溪溫泉 / 洞爺湖展望台</span>
+                                            <div class="flex items-center">
+                                                <a href="https://www.google.com/maps/search/?api=1&query=Silo+Observation+Deck+Toya" target="_blank" class="map-btn" id="btn-silo"><i class="fas fa-location-arrow mr-1"></i>Silo 展望台</a>
+                                                <button class="edit-link-btn" onclick="editLink('btn-silo')"><i class="fas fa-pencil-alt"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <!-- 3/18 DINNER UPDATE -->
+                            <li class="flex flex-col gap-2">
+                                <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2 py-1 rounded self-start">晚餐</span>
+                                <div class="flex-1">
+                                    <strong class="text-lg text-slate-800 block mb-2" contenteditable="true">乃之風豪華 Buffet (波之音)</strong>
+                                    <p class="text-sm text-slate-600" contenteditable="true">享受洞爺湖畔的極致自助餐饗宴。</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                 <!-- Day 5 -->
+                 <div class="relative pl-8 pb-10 group">
+                    <div class="absolute left-0 top-1 w-9 h-9 bg-sky-400 rounded-full flex items-center justify-center text-white font-bold shadow-lg z-10 border-2 border-white">5</div>
+                    <div class="glass-card bg-white rounded-xl p-5">
+                        <div class="flex flex-col mb-4">
+                            <h3 class="text-lg font-bold text-slate-800" contenteditable="true">3/19 (四) 札幌最後巡禮</h3>
+                            <span class="text-red-500 text-sm font-bold bg-red-50 px-3 py-1 rounded-full mt-2 self-start"><i class="fas fa-exclamation-circle mr-2"></i>還車日 / 宿: JR Tower</span>
+                        </div>
+                         <ul class="space-y-6">
+                            <li class="flex flex-col gap-2">
+                                <div class="space-y-3">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="text-slate-800 font-bold" contenteditable="true">北海道神宮 / 白色戀人工廠</span>
+                                        <div class="flex items-center">
+                                            <a href="https://www.google.com/maps/search/?api=1&query=北海道神宮" target="_blank" class="map-btn" id="btn-jingu"><i class="fas fa-location-arrow mr-1"></i>神宮導航</a>
+                                            <button class="edit-link-btn" onclick="editLink('btn-jingu')"><i class="fas fa-pencil-alt"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 p-3 bg-slate-100 rounded-lg text-sm">
+                                    <h4 class="font-bold text-slate-700 mb-2"><i class="fas fa-gas-pump mr-2"></i>還車</h4>
+                                    <div class="flex items-center">
+                                        <a href="https://www.google.com/maps/search/?api=1&query=Mobil+Kita+8+Jo+Filling+Station" target="_blank" class="text-sky-600 underline mr-2" id="btn-gas">加油站</a>
+                                        <button class="edit-link-btn mr-3" onclick="editLink('btn-gas')"><i class="fas fa-pencil-alt"></i></button>
+                                        
+                                        <a href="https://www.google.com/maps/search/?api=1&query=43°4'20.1432%22N+141°21'1.9152%22E" target="_blank" class="text-sky-600 underline" id="btn-return">還車點</a>
+                                        <button class="edit-link-btn" onclick="editLink('btn-return')"><i class="fas fa-pencil-alt"></i></button>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="flex flex-col gap-2">
+                                <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2 py-1 rounded self-start">晚餐</span>
+                                <div class="flex-1">
+                                    <strong class="text-lg text-slate-800 block mb-2" contenteditable="true">豪華晚餐</strong>
+                                    <div class="flex flex-wrap gap-2">
+                                        <div class="flex items-center">
+                                            <a href="https://www.google.com/maps/search/?api=1&query=Ramen+Sapporo+Ichiryuan" target="_blank" class="map-btn" id="btn-ramen"><i class="fas fa-utensils mr-1"></i>一粒庵</a>
+                                            <button class="edit-link-btn" onclick="editLink('btn-ramen')"><i class="fas fa-pencil-alt"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="text-sm text-slate-500 mt-1" contenteditable="true">
+                                        米其林推薦，滑嫩半熟蛋味噌拉麵。
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Day 6 -->
+                <div class="relative pl-8 group">
+                    <div class="absolute left-0 top-1 w-9 h-9 bg-slate-400 rounded-full flex items-center justify-center text-white font-bold shadow-lg z-10 border-2 border-white">6</div>
+                    <div class="glass-card bg-white rounded-xl p-5">
+                        <h3 class="text-lg font-bold text-slate-800 mb-2" contenteditable="true">3/20 (五) 平安返家</h3>
+                        <p class="text-slate-600" contenteditable="true">搭乘 JR 前往新千歲機場 (CTS)。</p>
+                        <div class="flex items-center mt-3">
+                            <a href="https://www.google.com/maps/search/?api=1&query=新千歲機場" target="_blank" class="map-btn" id="btn-airport"><i class="fas fa-plane mr-2"></i>機場導航</a>
+                            <button class="edit-link-btn" onclick="editLink('btn-airport')"><i class="fas fa-pencil-alt"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION: HOTELS (UPDATED) -->
+        <section id="hotels" class="tab-content hidden">
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">精選住宿</h2>
+            <p class="text-slate-500 mb-6">3/15 - 3/20</p>
+            
+            <div class="space-y-8">
+                <!-- Hotel 1 -->
+                <div class="glass-card bg-white rounded-xl p-6 hover:shadow-lg transition">
+                    <img src="https://mimigo.tw/wp-content/uploads/20231209201607_0.jpg" alt="札幌京王普雷利亞飯店" class="hotel-img">
+                    <div class="flex flex-col gap-2 mb-4">
+                        <span class="hotel-tag self-start">Day 1-3｜札幌</span>
+                        <h3 class="text-xl font-bold text-slate-800">札幌京王普雷利亞飯店</h3>
+                        <div class="text-sky-600 font-bold flex items-center">
+                            <i class="far fa-calendar-alt mr-2"></i>
+                            <span contenteditable="true" class="border-b border-dashed border-sky-300">3/15 - 3/18 (3晚)</span>
+                        </div>
+                        <div class="flex items-center mt-1">
+                            <a href="https://www.google.com/maps/search/?api=1&query=Keio+Prelia+Hotel+Sapporo" target="_blank" class="map-btn self-start" id="map-h1"><i class="fas fa-location-arrow mr-1"></i>地圖</a>
+                            <button class="edit-link-btn" onclick="editLink('map-h1')"><i class="fas fa-pencil-alt"></i></button>
+                        </div>
+                    </div>
+                    <ul class="hotel-feature-list text-slate-600 text-sm leading-relaxed mb-4">
+                        <li><strong>特色：</strong>札幌站北口3分鐘，鬧中取靜。</li>
+                        <li><strong>設施：</strong>寬敞大浴場，女性專用 Lounge。</li>
+                        <li><strong>必做：</strong>晨間散步北大校園，享用豐盛早餐。</li>
+                    </ul>
+                </div>
+
+                <!-- Hotel 2 -->
+                <div class="glass-card bg-white rounded-xl p-6 hover:shadow-lg transition">
+                    <img src="https://tw.tabiiro.travel/lpimg/hotels/100963/spa/img2.jpg" alt="TOYA 乃之風" class="hotel-img">
+                    <div class="flex flex-col gap-2 mb-4">
+                        <span class="hotel-tag self-start">Day 4｜洞爺湖</span>
+                        <h3 class="text-xl font-bold text-slate-800">TOYA 乃之風</h3>
+                        <div class="text-sky-600 font-bold flex items-center">
+                            <i class="far fa-calendar-alt mr-2"></i>
+                            <span contenteditable="true" class="border-b border-dashed border-sky-300">3/18 - 3/19 (1晚)</span>
+                        </div>
+                        <div class="flex items-center mt-1">
+                            <a href="https://www.google.com/maps/search/?api=1&query=The+Lake+View+Toya+Nonokaze+Resort" target="_blank" class="map-btn self-start" id="map-h2"><i class="fas fa-location-arrow mr-1"></i>地圖</a>
+                            <button class="edit-link-btn" onclick="editLink('map-h2')"><i class="fas fa-pencil-alt"></i></button>
+                        </div>
+                    </div>
+                    <ul class="hotel-feature-list text-slate-600 text-sm leading-relaxed mb-4">
+                        <li><strong>特色：</strong>全客房面湖，大廳落地窗湖景震撼。</li>
+                        <li><strong>設施：</strong>頂樓無邊際「天空露天風呂」。</li>
+                        <li><strong>必做：</strong>泡湯賞日出/日落，享用波之音晚餐。</li>
+                    </ul>
+                </div>
+
+                <!-- Hotel 3 -->
+                <div class="glass-card bg-white rounded-xl p-6 hover:shadow-lg transition">
+                    <img src="https://d3g2yh83to8qa2.cloudfront.net/wp-content/uploads/sites/57/2016/04/04064136/exterior_990x590.jpg" alt="JR Tower 日航" class="hotel-img">
+                    <div class="flex flex-col gap-2 mb-4">
+                        <span class="hotel-tag self-start">Day 5｜札幌</span>
+                        <h3 class="text-xl font-bold text-slate-800">JR Tower 日航</h3>
+                        <div class="text-sky-600 font-bold flex items-center">
+                            <i class="far fa-calendar-alt mr-2"></i>
+                            <span contenteditable="true" class="border-b border-dashed border-sky-300">3/19 - 3/20 (1晚)</span>
+                        </div>
+                        <div class="flex items-center mt-1">
+                            <a href="https://www.google.com/maps/search/?api=1&query=JR+Tower+Hotel+Nikko+Sapporo" target="_blank" class="map-btn self-start" id="map-h3"><i class="fas fa-location-arrow mr-1"></i>地圖</a>
+                            <button class="edit-link-btn" onclick="editLink('map-h3')"><i class="fas fa-pencil-alt"></i></button>
+                        </div>
+                    </div>
+                    <ul class="hotel-feature-list text-slate-600 text-sm leading-relaxed mb-4">
+                        <li><strong>特色：</strong>直通JR札幌站，高樓層百萬夜景。</li>
+                        <li><strong>設施：</strong>高空天然溫泉 SPA (需付費)。</li>
+                        <li><strong>必做：</strong>35樓 SKY J 早餐。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- (Prep, Coupons, Flights sections) -->
+        <section id="prep" class="tab-content hidden">
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">準備清單</h2>
+            <div class="grid grid-cols-1 gap-4">
+                <div class="bg-white rounded-xl p-6 border border-slate-100"><h3 class="font-bold mb-2">文件/證件</h3><div id="list-docs"></div></div>
+                <div class="bg-white rounded-xl p-6 border border-slate-100"><h3 class="font-bold mb-2">衣物</h3><div id="list-clothes"></div></div>
+                <div class="bg-white rounded-xl p-6 border border-slate-100"><h3 class="font-bold mb-2">雜項</h3><div id="list-combined"></div></div>
+            </div>
+        </section>
+
+        <section id="coupons" class="tab-content hidden">
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">優惠券</h2>
+            <div class="space-y-4">
+                <div class="bg-yellow-50 rounded-xl p-4 border-2 border-yellow-200 text-center font-bold text-yellow-900">松本清 (10% + 7%)</div>
+                <div class="bg-red-50 rounded-xl p-4 border-2 border-red-200 text-center font-bold text-red-900">Bic Camera (10% + 7%)</div>
+                <div class="bg-slate-800 rounded-xl p-4 border-2 border-slate-600 text-center text-yellow-400">
+                    <a href="https://japanportal.donki-global.com/coupon/cp001_zhtw.html" target="_blank" class="block py-2">驚安殿堂優惠券</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="flights" class="tab-content hidden">
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">航班資訊</h2>
+            <div class="bg-white rounded-xl shadow-md p-6 mb-4 border-l-4 border-sky-500">
+                <div class="flex justify-between mb-2"><span class="font-bold text-sky-700">去程 3/15</span><span>CI130</span></div>
+                <div class="flex justify-between text-xl font-bold"><span>08:35 TPE</span><span>13:15 CTS</span></div>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-emerald-500">
+                <div class="flex justify-between mb-2"><span class="font-bold text-emerald-700">回程 3/20</span><span>CI131</span></div>
+                <div class="flex justify-between text-xl font-bold"><span>14:40 CTS</span><span>18:15 TPE</span></div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // Edit Link Logic
+        function editLink(buttonId) {
+            const btn = document.getElementById(buttonId);
+            const currentUrl = btn.href;
+            const newUrl = prompt("請輸入新的 Google Map 連結:", currentUrl);
+            if (newUrl !== null && newUrl.trim() !== "") {
+                btn.href = newUrl;
+                localStorage.setItem(buttonId, newUrl);
+                alert("連結已更新！");
+            }
+        }
+
+        function restoreLinks() {
+            const buttons = document.querySelectorAll('.map-btn');
+            buttons.forEach(btn => {
+                const savedUrl = localStorage.getItem(btn.id);
+                if (savedUrl) btn.href = savedUrl;
+            });
+        }
+
+        // Edit Text Logic
+        function setupContentEditable() {
+            const editables = document.querySelectorAll('[contenteditable="true"]');
+            editables.forEach((el, index) => {
+                const uniqueKey = `editable_final_${index}`;
+                const savedText = localStorage.getItem(uniqueKey);
+                if(savedText) el.innerText = savedText;
+                el.addEventListener('blur', () => localStorage.setItem(uniqueKey, el.innerText));
+            });
+        }
+
+        // Standard Logic
+        const checklistData = {
+            'list-docs': ['機票影本', '身份證、信用卡', '駕照(日譯本)', '護照', '證件照'],
+            'list-clothes': ['貼身衣物x7', '睡衣', '外衣x10', '外褲x2', '襪子x7'],
+            'list-combined': ['牙刷/牙膏', '洗沐用品', '藥品', '充電器', '網卡/WIFI', '雨傘']
+        };
+
+        function renderChecklist() {
+            for (const [id, items] of Object.entries(checklistData)) {
+                const container = document.getElementById(id);
+                if(!container) continue;
+                items.forEach((item, index) => {
+                    const uniqueId = `${id}-${index}`;
+                    const savedState = localStorage.getItem(uniqueId) === 'true';
+                    const div = document.createElement('div');
+                    div.className = 'checkbox-wrapper relative flex items-center py-2 border-b border-gray-50 last:border-0';
+                    div.innerHTML = `
+                        <input type="checkbox" id="${uniqueId}" class="peer h-6 w-6 cursor-pointer text-sky-600 border-gray-300 rounded focus:ring-sky-500 mr-3" ${savedState ? 'checked' : ''}>
+                        <label for="${uniqueId}" class="cursor-pointer select-none block w-full text-base text-slate-700 peer-checked:text-slate-400 transition-colors">${item}</label>
+                    `;
+                    container.appendChild(div);
+                    div.querySelector('input').addEventListener('change', (e) => localStorage.setItem(uniqueId, e.target.checked));
+                });
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('block'));
+            document.getElementById(tabId).classList.remove('hidden');
+            document.getElementById(tabId).classList.add('block');
+            document.querySelectorAll('.grid > button').forEach(el => {
+                el.classList.remove('nav-active-mobile');
+                el.classList.add('text-slate-400');
+                el.classList.remove('text-sky-600');
+            });
+            const mobBtn = document.getElementById(`mob-btn-${tabId}`);
+            if(mobBtn) {
+                mobBtn.classList.add('nav-active-mobile');
+                mobBtn.classList.remove('text-slate-400');
+                mobBtn.classList.add('text-sky-600');
+            }
+            window.scrollTo(0, 0);
+        }
+
+        function updateCountdown() {
+            const tripDate = new Date('2026-03-15T08:35:00').getTime();
+            const now = new Date().getTime();
+            const distance = tripDate - now;
+            if (distance < 0) { document.getElementById('countdown').innerHTML = "已出發!"; return; }
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            document.getElementById('countdown').innerHTML = `${days} 天`;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderChecklist();
+            updateCountdown();
+            restoreLinks();
+            setupContentEditable();
+        });
+    </script>
+</body>
+</html>
